@@ -94,9 +94,29 @@ android boot <avd> -X "-memory" -X "2048" -X "-cores" -X "4"
 
 When a Magisk-patched emulator boots for the first time, `su -c` opens a dialog in the Magisk app asking for approval. Since the emulator runs headless, `android root`:
 
-1. Triggers a `su` request
-2. Sends key events (Tab → Tab → Enter) to auto-approve
-3. Verifies root access was granted
+1. Triggers a `su` request to open the dialog
+2. Tries multiple key-event patterns to auto-approve (Tab→Tab→Enter, Tab→Down→Down→Enter, etc.)
+3. Retries with alternative patterns if the first attempt fails
+4. Verifies root access was granted
+
+### Root Options
+
+```bash
+# Basic root grant
+android root
+
+# Check root status without triggering dialog
+android root --check
+
+# Grant root with "Remember" checkbox checked
+android root --persist
+
+# Retry with up to 5 attempts
+android root --retries 5
+
+# Boot and auto-grant in one step
+android boot <avd> --root
+```
 
 ## SDK Detection
 

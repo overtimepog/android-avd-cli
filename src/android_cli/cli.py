@@ -69,6 +69,12 @@ def build_parser() -> argparse.ArgumentParser:
     # --- root ---
     p_root = sub.add_parser("root", help="Grant root via Magisk")
     p_root.add_argument("avd", nargs="?", help="AVD name (uses running emulator)")
+    p_root.add_argument("--check", action="store_true",
+                        help="Check root status without triggering dialog")
+    p_root.add_argument("--persist", action="store_true",
+                        help="Check 'Remember' in the su dialog for persistent root")
+    p_root.add_argument("--retries", type=int, default=3,
+                        help="Max retry attempts (default: 3)")
 
     # --- kill ---
     p_kill = sub.add_parser("kill", help="Stop a running emulator")
@@ -129,7 +135,9 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     if args.command == "root":
-        ok = grant_magisk_root(args.avd, sdk=args.sdk)
+        ok = grant_magisk_root(args.avd, sdk=args.sdk,
+                               check_only=args.check, persist=args.persist,
+                               max_attempts=args.retries)
         return 0 if ok else 1
 
     if args.command == "kill":
