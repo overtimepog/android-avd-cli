@@ -36,7 +36,9 @@ def build_parser() -> argparse.ArgumentParser:
         usage="android <command> [options]",
     )
     parser.add_argument(
-        "--version", action="version", version=f"android-cli {__import__('android_cli').__version__}"
+        "--version",
+        action="version",
+        version=f"android-cli {__import__('android_cli').__version__}",
     )
     parser.add_argument(
         "--sdk", help="Path to Android SDK root (auto-detected if omitted)"
@@ -45,22 +47,41 @@ def build_parser() -> argparse.ArgumentParser:
     sub = parser.add_subparsers(dest="command", required=True)
 
     # --- list ---
-    p_list = sub.add_parser("list", help="List available AVDs")
+    sub.add_parser("list", help="List available AVDs")
 
     # --- boot ---
     p_boot = sub.add_parser("boot", help="Boot an emulator")
     p_boot.add_argument("avd", help="AVD name (use `android list`)")
-    p_boot.add_argument("--headed", action="store_true", help="Show emulator window (not headless)")
-    p_boot.add_argument("--no-snapshot", action="store_true", help="Skip snapshot loading")
-    p_boot.add_argument("--wipe-data", action="store_true", help="Wipe user data partition")
+    p_boot.add_argument(
+        "--headed", action="store_true", help="Show emulator window (not headless)"
+    )
+    p_boot.add_argument(
+        "--no-snapshot", action="store_true", help="Skip snapshot loading"
+    )
+    p_boot.add_argument(
+        "--wipe-data", action="store_true", help="Wipe user data partition"
+    )
     p_boot.add_argument("--read-only", action="store_true", help="Boot read-only")
-    p_boot.add_argument("--wait", "-w", action="store_true",
-                        help="Wait for boot to complete before returning")
-    p_boot.add_argument("--root", action="store_true",
-                        help="Auto-grant root via Magisk after boot (implies --wait)")
-    p_boot.add_argument("--timeout", type=int, default=120,
-                        help="Max seconds to wait for boot (default: 120)")
-    p_boot.add_argument("--extra", "-X", action="append", help="Extra emulator flags (can repeat)")
+    p_boot.add_argument(
+        "--wait",
+        "-w",
+        action="store_true",
+        help="Wait for boot to complete before returning",
+    )
+    p_boot.add_argument(
+        "--root",
+        action="store_true",
+        help="Auto-grant root via Magisk after boot (implies --wait)",
+    )
+    p_boot.add_argument(
+        "--timeout",
+        type=int,
+        default=120,
+        help="Max seconds to wait for boot (default: 120)",
+    )
+    p_boot.add_argument(
+        "--extra", "-X", action="append", help="Extra emulator flags (can repeat)"
+    )
 
     # --- status ---
     p_status = sub.add_parser("status", help="Check if emulator is booted")
@@ -69,12 +90,19 @@ def build_parser() -> argparse.ArgumentParser:
     # --- root ---
     p_root = sub.add_parser("root", help="Grant root via Magisk")
     p_root.add_argument("avd", nargs="?", help="AVD name (uses running emulator)")
-    p_root.add_argument("--check", action="store_true",
-                        help="Check root status without triggering dialog")
-    p_root.add_argument("--persist", action="store_true",
-                        help="Check 'Remember' in the su dialog for persistent root")
-    p_root.add_argument("--retries", type=int, default=3,
-                        help="Max retry attempts (default: 3)")
+    p_root.add_argument(
+        "--check",
+        action="store_true",
+        help="Check root status without triggering dialog",
+    )
+    p_root.add_argument(
+        "--persist",
+        action="store_true",
+        help="Check 'Remember' in the su dialog for persistent root",
+    )
+    p_root.add_argument(
+        "--retries", type=int, default=3, help="Max retry attempts (default: 3)"
+    )
 
     # --- kill ---
     p_kill = sub.add_parser("kill", help="Stop a running emulator")
@@ -92,8 +120,12 @@ def build_parser() -> argparse.ArgumentParser:
 
     # --- snapshot ---
     p_snap = sub.add_parser("snapshot", help="Manage snapshots")
-    p_snap.add_argument("action", choices=["list", "save", "delete"], help="Snapshot action")
-    p_snap.add_argument("name", nargs="?", help="Snapshot name (required for save/delete)")
+    p_snap.add_argument(
+        "action", choices=["list", "save", "delete"], help="Snapshot action"
+    )
+    p_snap.add_argument(
+        "name", nargs="?", help="Snapshot name (required for save/delete)"
+    )
     p_snap.add_argument("--avd", required=True, help="AVD name")
 
     # --- sdk-path ---
@@ -120,24 +152,45 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     if args.command == "boot":
-        ok = boot_avd(args.avd, sdk=args.sdk, headed=args.headed,
-                       no_snapshot=args.no_snapshot, wipe_data=args.wipe_data,
-                       read_only=args.read_only, wait=args.wait or args.root,
-                       auto_root=args.root, timeout=args.timeout,
-                       extra=args.extra)
+        ok = boot_avd(
+            args.avd,
+            sdk=args.sdk,
+            headed=args.headed,
+            no_snapshot=args.no_snapshot,
+            wipe_data=args.wipe_data,
+            read_only=args.read_only,
+            wait=args.wait or args.root,
+            auto_root=args.root,
+            timeout=args.timeout,
+            extra=args.extra,
+        )
         return 0 if ok else 1
 
     if args.command == "status":
         results = get_status(args.sdk, args.avd)
+        if not results:
+            print("  No AVDs found")
+            return 0
         for r in results:
-            extra = f"  PID {r['pid']}" if r["running"] else ""
-            print(f"  {r['name']:30}  {'RUNNING' if r['running'] else 'STOPPED'}{extra}")
+            if r["running"]:
+                port_info = f"  port={r['port']}" if r["port"] else ""
+                boot_info = "  BOOTED" if r["boot_completed"] else "  booting..."
+                serial_info = f"  {r['serial']}" if r["serial"] else ""
+                print(
+                    f"  {r['name']:30}  RUNNING  PID {r['pid']}{port_info}{serial_info}{boot_info}"
+                )
+            else:
+                print(f"  {r['name']:30}  STOPPED")
         return 0
 
     if args.command == "root":
-        ok = grant_magisk_root(args.avd, sdk=args.sdk,
-                               check_only=args.check, persist=args.persist,
-                               max_attempts=args.retries)
+        ok = grant_magisk_root(
+            args.avd,
+            sdk=args.sdk,
+            check_only=args.check,
+            persist=args.persist,
+            max_attempts=args.retries,
+        )
         return 0 if ok else 1
 
     if args.command == "kill":

@@ -13,7 +13,6 @@ Usage:
 
 import subprocess
 import time
-from typing import Optional
 
 from android_cli.config import adb_binary
 
@@ -23,46 +22,75 @@ from android_cli.config import adb_binary
 #   'sleep' — wait N seconds
 _APPROVAL_PATTERNS: list[list[tuple[str, str | float]]] = [
     # Pattern 1: Tab -> Tab -> Enter (focus: Deny -> Grant -> Click Grant)
-    [("key", "KEYCODE_TAB"), ("sleep", 0.5),
-     ("key", "KEYCODE_TAB"), ("sleep", 0.5),
-     ("key", "KEYCODE_ENTER")],
-
+    [
+        ("key", "KEYCODE_TAB"),
+        ("sleep", 0.5),
+        ("key", "KEYCODE_TAB"),
+        ("sleep", 0.5),
+        ("key", "KEYCODE_ENTER"),
+    ],
     # Pattern 2: Tab -> Tab -> Tab -> Enter (includes Remember checkbox)
-    [("key", "KEYCODE_TAB"), ("sleep", 0.3),
-     ("key", "KEYCODE_TAB"), ("sleep", 0.3),
-     ("key", "KEYCODE_TAB"), ("sleep", 0.3),
-     ("key", "KEYCODE_ENTER")],
-
+    [
+        ("key", "KEYCODE_TAB"),
+        ("sleep", 0.3),
+        ("key", "KEYCODE_TAB"),
+        ("sleep", 0.3),
+        ("key", "KEYCODE_TAB"),
+        ("sleep", 0.3),
+        ("key", "KEYCODE_ENTER"),
+    ],
     # Pattern 3: Tab -> Down -> Down -> Enter (alternative layout)
-    [("key", "KEYCODE_TAB"), ("sleep", 0.3),
-     ("key", "KEYCODE_DPAD_DOWN"), ("sleep", 0.3),
-     ("key", "KEYCODE_DPAD_DOWN"), ("sleep", 0.3),
-     ("key", "KEYCODE_ENTER")],
-
+    [
+        ("key", "KEYCODE_TAB"),
+        ("sleep", 0.3),
+        ("key", "KEYCODE_DPAD_DOWN"),
+        ("sleep", 0.3),
+        ("key", "KEYCODE_DPAD_DOWN"),
+        ("sleep", 0.3),
+        ("key", "KEYCODE_ENTER"),
+    ],
     # Pattern 4: Tab -> Tab -> Right -> Enter (focus: Deny -> Grant -> Remember checkbox -> Enter toggles)
-    [("key", "KEYCODE_TAB"), ("sleep", 0.3),
-     ("key", "KEYCODE_TAB"), ("sleep", 0.3),
-     ("key", "KEYCODE_DPAD_RIGHT"), ("sleep", 0.3),
-     ("key", "KEYCODE_ENTER")],
+    [
+        ("key", "KEYCODE_TAB"),
+        ("sleep", 0.3),
+        ("key", "KEYCODE_TAB"),
+        ("sleep", 0.3),
+        ("key", "KEYCODE_DPAD_RIGHT"),
+        ("sleep", 0.3),
+        ("key", "KEYCODE_ENTER"),
+    ],
 ]
 
 # Approval patterns with "Remember" checked (extra Tab to reach checkbox, Enter to toggle, Tab back, Enter to approve)
 _APPROVAL_PATTERNS_PERSIST: list[list[tuple[str, str | float]]] = [
     # Pattern 1P: Tab -> Tab -> Tab (focus Remember checkbox) -> Enter (check it) -> Tab -> Enter (Grant)
-    [("key", "KEYCODE_TAB"), ("sleep", 0.3),
-     ("key", "KEYCODE_TAB"), ("sleep", 0.3),
-     ("key", "KEYCODE_TAB"), ("sleep", 0.3),
-     ("key", "KEYCODE_ENTER"), ("sleep", 0.3),
-     ("key", "KEYCODE_TAB"), ("sleep", 0.3),
-     ("key", "KEYCODE_ENTER")],
-
+    [
+        ("key", "KEYCODE_TAB"),
+        ("sleep", 0.3),
+        ("key", "KEYCODE_TAB"),
+        ("sleep", 0.3),
+        ("key", "KEYCODE_TAB"),
+        ("sleep", 0.3),
+        ("key", "KEYCODE_ENTER"),
+        ("sleep", 0.3),
+        ("key", "KEYCODE_TAB"),
+        ("sleep", 0.3),
+        ("key", "KEYCODE_ENTER"),
+    ],
     # Pattern 2P: Tab -> Down -> Down -> Enter (check remember) -> Left -> Enter (Grant)
-    [("key", "KEYCODE_TAB"), ("sleep", 0.3),
-     ("key", "KEYCODE_DPAD_DOWN"), ("sleep", 0.3),
-     ("key", "KEYCODE_DPAD_DOWN"), ("sleep", 0.3),
-     ("key", "KEYCODE_ENTER"), ("sleep", 0.3),
-     ("key", "KEYCODE_DPAD_LEFT"), ("sleep", 0.3),
-     ("key", "KEYCODE_ENTER")],
+    [
+        ("key", "KEYCODE_TAB"),
+        ("sleep", 0.3),
+        ("key", "KEYCODE_DPAD_DOWN"),
+        ("sleep", 0.3),
+        ("key", "KEYCODE_DPAD_DOWN"),
+        ("sleep", 0.3),
+        ("key", "KEYCODE_ENTER"),
+        ("sleep", 0.3),
+        ("key", "KEYCODE_DPAD_LEFT"),
+        ("sleep", 0.3),
+        ("key", "KEYCODE_ENTER"),
+    ],
 ]
 
 
@@ -157,7 +185,9 @@ def _check_root(adb: str) -> bool:
     try:
         result = subprocess.run(
             [adb, "shell", "su", "-c", "id"],
-            capture_output=True, text=True, timeout=10,
+            capture_output=True,
+            text=True,
+            timeout=10,
         )
         return "uid=0" in result.stdout
     except (subprocess.TimeoutExpired, subprocess.CalledProcessError):
@@ -181,7 +211,9 @@ def _open_magisk_app(adb: str) -> None:
     try:
         subprocess.run(
             [adb, "shell", "monkey", "-p", "com.topjohnwu.magisk", "1"],
-            capture_output=True, text=True, timeout=5,
+            capture_output=True,
+            text=True,
+            timeout=5,
         )
     except Exception:
         pass
@@ -194,7 +226,9 @@ def _send_key_sequence(adb: str, pattern: list[tuple[str, str | float]]) -> None
             try:
                 subprocess.run(
                     [adb, "shell", "input", "keyevent", str(value)],
-                    capture_output=True, text=True, timeout=5,
+                    capture_output=True,
+                    text=True,
+                    timeout=5,
                 )
             except Exception:
                 return
@@ -207,5 +241,8 @@ def find_adb(sdk: str | None = None) -> str | None:
     try:
         return adb_binary(sdk)
     except FileNotFoundError:
-        print("ADB not found. Is the Android SDK installed?", file=__import__("sys").stderr)
+        print(
+            "ADB not found. Is the Android SDK installed?",
+            file=__import__("sys").stderr,
+        )
         return None

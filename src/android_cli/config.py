@@ -27,10 +27,10 @@ def find_sdk_root(override: str | None = None) -> str | None:
             return val
 
     candidates = [
-        os.path.expanduser("~/Library/Android/sdk"),        # macOS
-        os.path.expanduser("~/Android/Sdk"),                 # Linux
-        "/usr/lib/android-sdk",                              # Debian/Ubuntu
-        "/opt/android-sdk",                                  # Manual install
+        os.path.expanduser("~/Library/Android/sdk"),  # macOS
+        os.path.expanduser("~/Android/Sdk"),  # Linux
+        "/usr/lib/android-sdk",  # Debian/Ubuntu
+        "/opt/android-sdk",  # Manual install
     ]
     for c in candidates:
         if _valid_sdk(c):
@@ -50,7 +50,9 @@ def find_sdk_root(override: str | None = None) -> str | None:
 def _valid_sdk(path: str) -> bool:
     """Check if a directory looks like a valid Android SDK root."""
     p = Path(path)
-    return (p / "emulator" / "emulator").exists() or (p / "emulator" / "emulator.exe").exists()
+    return (p / "emulator" / "emulator").exists() or (
+        p / "emulator" / "emulator.exe"
+    ).exists()
 
 
 def emulator_binary(sdk: str | None = None) -> str:
@@ -61,7 +63,9 @@ def emulator_binary(sdk: str | None = None) -> str:
         emu = shutil.which("emulator")
         if emu:
             return emu
-        raise FileNotFoundError("Android emulator not found. Set ANDROID_HOME or install Android SDK.")
+        raise FileNotFoundError(
+            "Android emulator not found. Set ANDROID_HOME or install Android SDK."
+        )
     return os.path.join(root, "emulator", "emulator")
 
 
@@ -72,7 +76,9 @@ def adb_binary(sdk: str | None = None) -> str:
         adb = shutil.which("adb")
         if adb:
             return adb
-        raise FileNotFoundError("adb not found. Set ANDROID_HOME or install Android SDK.")
+        raise FileNotFoundError(
+            "adb not found. Set ANDROID_HOME or install Android SDK."
+        )
     return os.path.join(root, "platform-tools", "adb")
 
 

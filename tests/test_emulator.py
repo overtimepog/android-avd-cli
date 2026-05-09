@@ -7,6 +7,7 @@ from android_cli.emulator import wait_for_boot, list_avds
 def test_list_avds_no_sdk(tmp_path):
     """list_avds should return empty list if emulator binary not found."""
     from android_cli.config import find_sdk_root
+
     if not find_sdk_root():
         assert list_avds() == []
 
@@ -27,5 +28,7 @@ class TestWaitForBoot:
         mock_result.stdout = "0"
 
         with patch("subprocess.run", return_value=mock_result):
-            result = wait_for_boot("/fake/adb", timeout=6, poll_interval=2, show_progress=False)
+            result = wait_for_boot(
+                "/fake/adb", timeout=6, poll_interval=2, show_progress=False
+            )
             assert result is False

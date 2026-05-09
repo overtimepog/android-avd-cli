@@ -1,7 +1,6 @@
 """ADB interaction — shell commands, device info, property queries."""
 
 import subprocess
-from typing import Optional
 
 from android_cli.config import adb_binary
 
@@ -39,7 +38,9 @@ def adb_shell(
     try:
         result = subprocess.run(
             [adb, "shell"] + shell_cmd,
-            capture_output=True, text=True, timeout=timeout,
+            capture_output=True,
+            text=True,
+            timeout=timeout,
         )
         if result.returncode != 0 and result.stderr.strip():
             print(result.stderr.strip(), file=__import__("sys").stderr)
@@ -52,7 +53,9 @@ def adb_shell(
         return None
 
 
-def device_info(avd_name: str | None = None, sdk: str | None = None) -> dict[str, str] | None:
+def device_info(
+    avd_name: str | None = None, sdk: str | None = None
+) -> dict[str, str] | None:
     """Get device properties via ADB.
 
     Returns a dict of device info, or None if no device is connected.
@@ -76,7 +79,9 @@ def device_info(avd_name: str | None = None, sdk: str | None = None) -> dict[str
         try:
             result = subprocess.run(
                 [adb, "shell", "getprop", prop],
-                capture_output=True, text=True, timeout=5,
+                capture_output=True,
+                text=True,
+                timeout=5,
             )
             val = result.stdout.strip()
             if val:
@@ -88,7 +93,9 @@ def device_info(avd_name: str | None = None, sdk: str | None = None) -> dict[str
     try:
         result = subprocess.run(
             [adb, "shell", "which", "su"],
-            capture_output=True, text=True, timeout=5,
+            capture_output=True,
+            text=True,
+            timeout=5,
         )
         info["has_su"] = "yes" if result.stdout.strip() else "no"
     except (subprocess.TimeoutExpired, FileNotFoundError):
@@ -97,7 +104,9 @@ def device_info(avd_name: str | None = None, sdk: str | None = None) -> dict[str
     try:
         result = subprocess.run(
             [adb, "shell", "su", "-v"],
-            capture_output=True, text=True, timeout=5,
+            capture_output=True,
+            text=True,
+            timeout=5,
         )
         if result.stdout.strip():
             info["magisk_version"] = result.stdout.strip()
@@ -115,7 +124,10 @@ def devices(sdk: str | None = None) -> list[dict]:
 
     try:
         result = subprocess.run(
-            [adb, "devices"], capture_output=True, text=True, timeout=10,
+            [adb, "devices"],
+            capture_output=True,
+            text=True,
+            timeout=10,
         )
         lines = result.stdout.splitlines()
         devices_list = []

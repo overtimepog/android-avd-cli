@@ -1,7 +1,8 @@
 """Tests for root module."""
 
+import subprocess
 from unittest.mock import patch, MagicMock
-from android_cli.root import check_root, _check_root, grant_magisk_root, _APPROVAL_PATTERNS
+from android_cli.root import _check_root, grant_magisk_root, _APPROVAL_PATTERNS
 
 
 class TestCheckRoot:
@@ -15,7 +16,10 @@ class TestCheckRoot:
 
     def test_root_not_granted_timeout(self):
         """Should return False when su times out."""
-        with patch("subprocess.run", side_effect=TimeoutError):
+        with patch(
+            "subprocess.run",
+            side_effect=subprocess.TimeoutExpired(cmd="su", timeout=10),
+        ):
             assert _check_root("/fake/adb") is False
 
     def test_root_not_granted_no_root(self):
