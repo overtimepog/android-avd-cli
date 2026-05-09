@@ -77,7 +77,16 @@ android boot <avd> --wipe-data
 # Boot read-only
 android boot <avd> --read-only
 
-# Pass extra flags
+# Wait for boot to complete
+android boot <avd> --wait
+
+# Boot, wait, and auto-grant root
+android boot <avd> --root
+
+# Boot with longer timeout
+android boot <avd> --wait --timeout 300
+
+# Pass extra emulator flags
 android boot <avd> -X "-memory" -X "2048" -X "-cores" -X "4"
 ```
 

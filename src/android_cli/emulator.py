@@ -25,9 +25,16 @@ def boot_avd(
     no_snapshot: bool = False,
     wipe_data: bool = False,
     read_only: bool = False,
+    wait: bool = False,
+    auto_root: bool = False,
+    timeout: int = 120,
     extra: list[str] | None = None,
 ) -> bool:
-    """Boot an AVD in the background. Returns True if launched successfully."""
+    """Boot an AVD in the background. Returns True if launched successfully.
+
+    If wait=True, blocks until sys.boot_completed.
+    If auto_root=True, grants root via Magisk after boot.
+    """
     emu = emulator_binary(sdk)
     adb = adb_binary(sdk)
 
@@ -50,6 +57,16 @@ def boot_avd(
             stderr=subprocess.DEVNULL,
         )
         print(f"Booting {avd_name} (PID {proc.pid})...")
+
+        if wait:
+            print(f"Waiting up to {timeout}s for boot... ", end="", flush=True)
+            ok = wait_for_boot(adb, timeout=timeout)
+            print("OK" if ok else "TIMEOUT")
+
+            if ok and auto_root:
+                from android_cli.root import grant_magisk_root  # noqa: PLC0415
+                grant_magisk_root(sdk=sdk)
+
         return True
     except FileNotFoundError:
         print(f"Emulator binary not found at: {emu}", file=__import__("sys").stderr)
@@ -131,11 +148,16 @@ def wait_for_boot(
     adb_path: str,
     timeout: int = 120,
     poll_interval: int = 3,
+    show_progress: bool = True,
 ) -> bool:
     """Wait for the emulator to finish booting.
 
     Polls sys.boot_completed until it returns '1' or timeout is reached.
+    If show_progress=True, prints dots and an elapsed timer.
     """
+    import sys  # noqa: PLC0415
+
+    start = time.monotonic()
     for _ in range(timeout // poll_interval):
         try:
             result = subprocess.run(
@@ -143,10 +165,18 @@ def wait_for_boot(
                 capture_output=True, text=True, timeout=10,
             )
             if result.stdout.strip() == "1":
+                if show_progress:
+                    elapsed = time.monotonic() - start
+                    print(f" [{elapsed:.0f}s]")
                 return True
         except (subprocess.TimeoutExpired, FileNotFoundError):
             pass
+        if show_progress:
+            print(".", end="", flush=True)
         time.sleep(poll_interval)
+    if show_progress:
+        elapsed = time.monotonic() - start
+        print(f" TIMEOUT [{elapsed:.0f}s]")
     return False
 
 

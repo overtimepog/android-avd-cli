@@ -54,6 +54,12 @@ def build_parser() -> argparse.ArgumentParser:
     p_boot.add_argument("--no-snapshot", action="store_true", help="Skip snapshot loading")
     p_boot.add_argument("--wipe-data", action="store_true", help="Wipe user data partition")
     p_boot.add_argument("--read-only", action="store_true", help="Boot read-only")
+    p_boot.add_argument("--wait", "-w", action="store_true",
+                        help="Wait for boot to complete before returning")
+    p_boot.add_argument("--root", action="store_true",
+                        help="Auto-grant root via Magisk after boot (implies --wait)")
+    p_boot.add_argument("--timeout", type=int, default=120,
+                        help="Max seconds to wait for boot (default: 120)")
     p_boot.add_argument("--extra", "-X", action="append", help="Extra emulator flags (can repeat)")
 
     # --- status ---
@@ -110,7 +116,9 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "boot":
         ok = boot_avd(args.avd, sdk=args.sdk, headed=args.headed,
                        no_snapshot=args.no_snapshot, wipe_data=args.wipe_data,
-                       read_only=args.read_only, extra=args.extra)
+                       read_only=args.read_only, wait=args.wait or args.root,
+                       auto_root=args.root, timeout=args.timeout,
+                       extra=args.extra)
         return 0 if ok else 1
 
     if args.command == "status":
