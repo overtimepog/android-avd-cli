@@ -3,7 +3,7 @@
 Android Emulator AVD CLI — manage emulators, grant root via Magisk, and run ADB commands from the terminal.
 
 ```bash
-pip install android-cli
+pip install android-avd-cli
 ```
 
 ## Quick Start
