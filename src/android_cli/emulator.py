@@ -13,7 +13,9 @@ def list_avds(sdk: Optional[str] = None) -> List[str]:
         emu = emulator_binary(sdk)
     except FileNotFoundError:
         return []
-    result = subprocess.run([emu, "-list-avds"], capture_output=True, text=True, timeout=15)
+    result = subprocess.run(
+        [emu, "-list-avds"], capture_output=True, text=True, timeout=15
+    )
     if result.returncode != 0:
         return []
     return [line.strip() for line in result.stdout.splitlines() if line.strip()]
