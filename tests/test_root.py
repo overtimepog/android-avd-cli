@@ -36,9 +36,10 @@ class TestGrantMagiskRoot:
         """Should return immediately if root already granted."""
         with patch("android_cli.root._check_root", return_value=True):
             with patch("android_cli.root._trigger_su") as mock:
-                result = grant_magisk_root(sdk="/fake/sdk", max_attempts=1)
-                assert result is True
-                mock.assert_not_called()
+                with patch("android_cli.root.find_adb", return_value="/fake/adb"):
+                    result = grant_magisk_root(sdk="/fake/sdk", max_attempts=1)
+                    assert result is True
+                    mock.assert_not_called()
 
     def test_grant_succeeds_on_first_try(self):
         """Should succeed when the first approval pattern works."""

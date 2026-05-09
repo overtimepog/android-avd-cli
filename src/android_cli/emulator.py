@@ -9,10 +9,11 @@ from android_cli.config import emulator_binary, adb_binary
 
 def list_avds(sdk: Optional[str] = None) -> List[str]:
     """Return list of available AVD names."""
-    emu = emulator_binary(sdk)
-    result = subprocess.run(
-        [emu, "-list-avds"], capture_output=True, text=True, timeout=15
-    )
+    try:
+        emu = emulator_binary(sdk)
+    except FileNotFoundError:
+        return []
+    result = subprocess.run([emu, "-list-avds"], capture_output=True, text=True, timeout=15)
     if result.returncode != 0:
         return []
     return [line.strip() for line in result.stdout.splitlines() if line.strip()]
