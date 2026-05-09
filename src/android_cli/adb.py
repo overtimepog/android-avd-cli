@@ -1,11 +1,12 @@
 """ADB interaction — shell commands, device info, property queries."""
 
 import subprocess
+from typing import Optional, Dict, List
 
 from android_cli.config import adb_binary
 
 
-def find_adb(sdk: str | None = None) -> str | None:
+def find_adb(sdk: Optional[str] = None) -> Optional[str]:
     """Get the ADB binary path, or None if not found."""
     try:
         return adb_binary(sdk)
@@ -14,12 +15,12 @@ def find_adb(sdk: str | None = None) -> str | None:
 
 
 def adb_shell(
-    cmd: list[str],
-    avd_name: str | None = None,
-    sdk: str | None = None,
+    cmd: List[str],
+    avd_name: Optional[str] = None,
+    sdk: Optional[str] = None,
     use_root: bool = False,
     timeout: int = 30,
-) -> str | None:
+) -> Optional[str]:
     """Run a command via `adb shell`.
 
     If use_root is True, prefixes with `su -c`.
@@ -54,8 +55,8 @@ def adb_shell(
 
 
 def device_info(
-    avd_name: str | None = None, sdk: str | None = None
-) -> dict[str, str] | None:
+    avd_name: Optional[str] = None, sdk: Optional[str] = None
+) -> Dict[str, str] | None:
     """Get device properties via ADB.
 
     Returns a dict of device info, or None if no device is connected.
@@ -74,7 +75,7 @@ def device_info(
         "persist.sys.timezone": "timezone",
     }
 
-    info: dict[str, str] = {}
+    info: Dict[str, str] = {}
     for prop, key in props.items():
         try:
             result = subprocess.run(
@@ -116,7 +117,7 @@ def device_info(
     return info if info else None
 
 
-def devices(sdk: str | None = None) -> list[dict]:
+def devices(sdk: Optional[str] = None) -> List[dict]:
     """List connected ADB devices."""
     adb = find_adb(sdk)
     if not adb:

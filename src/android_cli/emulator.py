@@ -2,11 +2,12 @@
 
 import subprocess
 import time
+from typing import Optional, List
 
 from android_cli.config import emulator_binary, adb_binary
 
 
-def list_avds(sdk: str | None = None) -> list[str]:
+def list_avds(sdk: Optional[str] = None) -> List[str]:
     """Return list of available AVD names."""
     emu = emulator_binary(sdk)
     result = subprocess.run(
@@ -19,7 +20,7 @@ def list_avds(sdk: str | None = None) -> list[str]:
 
 def boot_avd(
     avd_name: str,
-    sdk: str | None = None,
+    sdk: Optional[str] = None,
     headed: bool = False,
     no_snapshot: bool = False,
     wipe_data: bool = False,
@@ -27,7 +28,7 @@ def boot_avd(
     wait: bool = False,
     auto_root: bool = False,
     timeout: int = 120,
-    extra: list[str] | None = None,
+    extra: Optional[List[str]] = None,
 ) -> bool:
     """Boot an AVD in the background. Returns True if launched successfully.
 
@@ -74,7 +75,7 @@ def boot_avd(
 
 
 def kill_avd(
-    avd_name: str | None = None, force: bool = False, sdk: str | None = None
+    avd_name: Optional[str] = None, force: bool = False, sdk: Optional[str] = None
 ) -> bool:
     """Stop a running emulator.
 
@@ -94,7 +95,7 @@ def kill_avd(
     return True
 
 
-def get_status(avd_name: str | None = None, sdk: str | None = None) -> list[dict]:
+def get_status(avd_name: Optional[str] = None, sdk: Optional[str] = None) -> List[dict]:
     """Check which AVDs are running.
 
     Returns list of dicts with keys: name, running, pid, port, serial, boot_completed.
@@ -244,7 +245,7 @@ def wait_for_boot(
     return False
 
 
-def snapshot_list(avd_name: str, sdk: str | None = None) -> list[str]:
+def snapshot_list(avd_name: str, sdk: Optional[str] = None) -> List[str]:
     """List snapshots for an AVD.
 
     Uses the 'emulator -avd <name> -snapshot-list' command.
@@ -273,7 +274,7 @@ def snapshot_list(avd_name: str, sdk: str | None = None) -> list[str]:
         return []
 
 
-def snapshot_save(avd_name: str, name: str, sdk: str | None = None) -> bool:
+def snapshot_save(avd_name: str, name: str, sdk: Optional[str] = None) -> bool:
     """Save a snapshot. Requires the emulator to be running."""
     emu = emulator_binary(sdk)
     try:
@@ -288,7 +289,7 @@ def snapshot_save(avd_name: str, name: str, sdk: str | None = None) -> bool:
         return False
 
 
-def snapshot_delete(avd_name: str, name: str, sdk: str | None = None) -> bool:
+def snapshot_delete(avd_name: str, name: str, sdk: Optional[str] = None) -> bool:
     """Delete a snapshot."""
     emu = emulator_binary(sdk)
     try:

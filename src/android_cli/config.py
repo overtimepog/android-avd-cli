@@ -3,9 +3,10 @@
 import os
 import shutil
 from pathlib import Path
+from typing import Optional
 
 
-def find_sdk_root(override: str | None = None) -> str | None:
+def find_sdk_root(override: Optional[str] = None) -> Optional[str]:
     """Locate the Android SDK root directory.
 
     Checks, in order:
@@ -55,7 +56,7 @@ def _valid_sdk(path: str) -> bool:
     ).exists()
 
 
-def emulator_binary(sdk: str | None = None) -> str:
+def emulator_binary(sdk: Optional[str] = None) -> str:
     """Get the full path to the emulator binary."""
     root = find_sdk_root(sdk)
     if not root:
@@ -69,7 +70,7 @@ def emulator_binary(sdk: str | None = None) -> str:
     return os.path.join(root, "emulator", "emulator")
 
 
-def adb_binary(sdk: str | None = None) -> str:
+def adb_binary(sdk: Optional[str] = None) -> str:
     """Get the full path to the ADB binary."""
     root = find_sdk_root(sdk)
     if not root:
@@ -82,7 +83,7 @@ def adb_binary(sdk: str | None = None) -> str:
     return os.path.join(root, "platform-tools", "adb")
 
 
-def avd_dir(sdk: str | None = None) -> str:
+def avd_dir(sdk: Optional[str] = None) -> str:
     """Get the AVD directory path."""
     root = find_sdk_root(sdk)
     if not root:

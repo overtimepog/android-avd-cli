@@ -12,6 +12,8 @@ Subcommands:
   sdk-path      Show Android SDK path
 """
 
+from typing import Optional, List
+
 import argparse
 import sys
 
@@ -134,7 +136,7 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def main(argv: list[str] | None = None) -> int:
+def main(argv: Optional[List[str]] = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
 

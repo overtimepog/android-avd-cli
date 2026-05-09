@@ -11,6 +11,8 @@ Usage:
     android root [avd_name] --persist  # Grant + remember decision
 """
 
+from typing import Optional, List, Tuple, Union
+
 import subprocess
 import time
 
@@ -20,7 +22,7 @@ from android_cli.config import adb_binary
 # Each pattern is a list of (action, key) tuples where action is:
 #   'key'  — press a key
 #   'sleep' — wait N seconds
-_APPROVAL_PATTERNS: list[list[tuple[str, str | float]]] = [
+_APPROVAL_PATTERNS: List[List[Tuple[str, Union[str, float]]]] = [
     # Pattern 1: Tab -> Tab -> Enter (focus: Deny -> Grant -> Click Grant)
     [
         ("key", "KEYCODE_TAB"),
@@ -62,7 +64,7 @@ _APPROVAL_PATTERNS: list[list[tuple[str, str | float]]] = [
 ]
 
 # Approval patterns with "Remember" checked (extra Tab to reach checkbox, Enter to toggle, Tab back, Enter to approve)
-_APPROVAL_PATTERNS_PERSIST: list[list[tuple[str, str | float]]] = [
+_APPROVAL_PATTERNS_PERSIST: List[List[Tuple[str, Union[str, float]]]] = [
     # Pattern 1P: Tab -> Tab -> Tab (focus Remember checkbox) -> Enter (check it) -> Tab -> Enter (Grant)
     [
         ("key", "KEYCODE_TAB"),
@@ -95,8 +97,8 @@ _APPROVAL_PATTERNS_PERSIST: list[list[tuple[str, str | float]]] = [
 
 
 def grant_magisk_root(
-    avd_name: str | None = None,
-    sdk: str | None = None,
+    avd_name: Optional[str] = None,
+    sdk: Optional[str] = None,
     check_only: bool = False,
     persist: bool = False,
     max_attempts: int = 3,
@@ -172,7 +174,7 @@ def grant_magisk_root(
     return False
 
 
-def check_root(sdk: str | None = None) -> bool:
+def check_root(sdk: Optional[str] = None) -> bool:
     """Quick check: is root available? Returns True if `su -c id` returns uid=0."""
     adb = find_adb(sdk)
     if not adb:
@@ -219,7 +221,7 @@ def _open_magisk_app(adb: str) -> None:
         pass
 
 
-def _send_key_sequence(adb: str, pattern: list[tuple[str, str | float]]) -> None:
+def _send_key_sequence(adb: str, pattern: List[Tuple[str, Union[str, float]]]) -> None:
     """Execute a sequence of key events and sleeps."""
     for action, value in pattern:
         if action == "key":
@@ -236,7 +238,7 @@ def _send_key_sequence(adb: str, pattern: list[tuple[str, str | float]]) -> None
             time.sleep(float(value))
 
 
-def find_adb(sdk: str | None = None) -> str | None:
+def find_adb(sdk: Optional[str] = None) -> Optional[str]:
     """Get the ADB binary path, or None if not found."""
     try:
         return adb_binary(sdk)
