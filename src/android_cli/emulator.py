@@ -1,5 +1,6 @@
 """Emulator lifecycle — list, boot, kill, status, snapshots."""
 
+import os
 import subprocess
 import time
 from typing import Optional, List
@@ -83,19 +84,40 @@ def kill_avd(
     """Stop a running emulator.
 
     If avd_name is None, stops ALL running emulators.
+    Uses ADB emu kill first (reliable), then process kill as fallback.
     """
-    emu = emulator_binary(sdk)
-    cmd = [emu, "-kill"]
-    if avd_name:
-        cmd.extend(["-avd", avd_name])
+    adb = adb_binary(sdk)
+    killed = False
 
-    result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
-    if result.returncode != 0:
-        print(f"Warning: emulator -kill returned {result.returncode}")
-        print(result.stderr)
-        return False
-    print(f"Emulator {avd_name or '(all)'} stopped.")
-    return True
+    # Method 1: ADB emu kill (most reliable)
+    try:
+        result = subprocess.run(
+            [adb, "emu", "kill"], capture_output=True, text=True, timeout=10
+        )
+        if result.returncode == 0:
+            killed = True
+    except (subprocess.TimeoutExpired, FileNotFoundError):
+        pass
+
+    # Method 2: Force kill by PID
+    if force or not killed:
+        try:
+            result = subprocess.run(
+                ["pkill", "-f", "qemu-system"],
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
+            if result.returncode == 0:
+                killed = True
+        except (subprocess.TimeoutExpired, FileNotFoundError):
+            pass
+
+    if killed:
+        print(f"Emulator {avd_name or '(all)'} stopped.")
+        return True
+    print("No running emulator found.")
+    return False
 
 
 def get_status(avd_name: Optional[str] = None, sdk: Optional[str] = None) -> List[dict]:
@@ -249,40 +271,37 @@ def wait_for_boot(
 
 
 def snapshot_list(avd_name: str, sdk: Optional[str] = None) -> List[str]:
-    """List snapshots for an AVD.
-
-    Uses the 'emulator -avd <name> -snapshot-list' command.
-    """
-    emu = emulator_binary(sdk)
+    """List snapshots for an AVD by reading the snapshots directory."""
+    adb = adb_binary(sdk)
+    avd_path = os.path.expanduser(f"~/.android/avd/{avd_name}.avd/snapshots")
     try:
-        result = subprocess.run(
-            [emu, "-avd", avd_name, "-snapshot-list"],
-            capture_output=True,
-            text=True,
-            timeout=15,
-        )
-        lines = result.stdout.splitlines()
-        snapshots = []
-        in_table = False
-        for line in lines:
-            if "Savegame" in line and "Tag" in line:
-                in_table = True
-                continue
-            if in_table and line.strip() and not line.startswith("--"):
-                parts = line.split()
-                if len(parts) >= 2:
-                    snapshots.append(parts[0])
-        return snapshots
-    except (subprocess.TimeoutExpired, FileNotFoundError):
-        return []
+        snapshots = [
+            d
+            for d in os.listdir(avd_path)
+            if os.path.isdir(os.path.join(avd_path, d)) and d != "default_boot"
+        ]
+        return sorted(snapshots)
+    except (FileNotFoundError, OSError):
+        # Fallback: try ADB emu command
+        try:
+            result = subprocess.run(
+                [adb, "emu", "avd", "snapshot", "list"],
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
+            lines = [ln.strip() for ln in result.stdout.splitlines() if ln.strip()]
+            return [ln for ln in lines if ln and ":" not in ln]
+        except (subprocess.TimeoutExpired, FileNotFoundError):
+            return []
 
 
 def snapshot_save(avd_name: str, name: str, sdk: Optional[str] = None) -> bool:
-    """Save a snapshot. Requires the emulator to be running."""
-    emu = emulator_binary(sdk)
+    """Save a snapshot via ADB emu console (more reliable than emulator binary)."""
+    adb = adb_binary(sdk)
     try:
         result = subprocess.run(
-            [emu, "-avd", avd_name, "-snapshot", name, "-snapshot-save"],
+            [adb, "emu", "avd", "snapshot", "save", name],
             capture_output=True,
             text=True,
             timeout=60,
@@ -293,11 +312,11 @@ def snapshot_save(avd_name: str, name: str, sdk: Optional[str] = None) -> bool:
 
 
 def snapshot_delete(avd_name: str, name: str, sdk: Optional[str] = None) -> bool:
-    """Delete a snapshot."""
-    emu = emulator_binary(sdk)
+    """Delete a snapshot via ADB emu console."""
+    adb = adb_binary(sdk)
     try:
         result = subprocess.run(
-            [emu, "-avd", avd_name, "-snapshot", name, "-snapshot-delete"],
+            [adb, "emu", "avd", "snapshot", "delete", name],
             capture_output=True,
             text=True,
             timeout=30,

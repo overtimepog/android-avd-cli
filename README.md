@@ -1,4 +1,4 @@
-# android-cli
+# android-avd-cli
 
 Android Emulator AVD CLI — manage emulators, grant root via Magisk, and run ADB commands from the terminal.
 
@@ -31,14 +31,14 @@ android kill
 ## Installation
 
 ```bash
-pip install android-cli
+pip install android-avd-cli
 ```
 
 Or install from source:
 
 ```bash
-git clone https://github.com/overtimepog/android-cli.git
-cd android-cli
+git clone https://github.com/overtimepog/android-avd-cli.git
+cd android-avd-cli
 pip install -e .
 ```
 
