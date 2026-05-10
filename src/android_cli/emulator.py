@@ -25,7 +25,7 @@ def list_avds(sdk: Optional[str] = None) -> List[str]:
 def boot_avd(
     avd_name: str,
     sdk: Optional[str] = None,
-    headed: bool = False,
+    headed: bool = True,
     no_snapshot: bool = False,
     wipe_data: bool = False,
     read_only: bool = False,

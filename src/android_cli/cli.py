@@ -55,7 +55,7 @@ def build_parser() -> argparse.ArgumentParser:
     p_boot = sub.add_parser("boot", help="Boot an emulator")
     p_boot.add_argument("avd", help="AVD name (use `android list`)")
     p_boot.add_argument(
-        "--headed", action="store_true", help="Show emulator window (not headless)"
+        "--headless", action="store_true", help="Run headless (no emulator window)"
     )
     p_boot.add_argument(
         "--no-snapshot", action="store_true", help="Skip snapshot loading"
@@ -157,7 +157,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         ok = boot_avd(
             args.avd,
             sdk=args.sdk,
-            headed=args.headed,
+            headed=not args.headless,
             no_snapshot=args.no_snapshot,
             wipe_data=args.wipe_data,
             read_only=args.read_only,
